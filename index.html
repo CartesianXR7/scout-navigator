@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Scout Pathfinder - Dynamic Rover Navigation</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <div style="padding: 40px; text-align: center;">
+            <h2>Loading Scout Pathfinder...</h2>
+            <p>If this message persists, check the browser console.</p>
+        </div>
+    </div>
+    
+    <script type="module">
+        console.log('Scout Pathfinder: Starting initialization...');
+        
+        import init, { run_app } from './pkg/scout.js';
+        
+        console.log('Scout Pathfinder: Module imported');
+        
+        async function start() {
+            try {
+                console.log('Scout Pathfinder: Calling init()...');
+                await init('./pkg/scout_bg.wasm');
+                console.log('Scout Pathfinder: WASM module loaded successfully!');
+                
+                console.log('Scout Pathfinder: Calling run_app()...');
+                run_app();
+                console.log('Scout Pathfinder: Application started!');
+            } catch (err) {
+                console.error('Scout Pathfinder: Failed to initialize:', err);
+                document.getElementById('app').innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: #dc2626;">
+                        <h2>Error Loading Application</h2>
+                        <p>Please check the browser console for details.</p>
+                        <pre style="text-align: left; background: #fee; padding: 20px; overflow: auto;">${err.stack || err}</pre>
+                    </div>
+                `;
+            }
+        }
+        
+        start();
+    </script>
+</body>
+</html>

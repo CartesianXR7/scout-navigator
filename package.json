@@ -1,0 +1,15 @@
+{
+  "name": "scout-pathfinder",
+  "version": "0.1.0",
+  "description": "Dynamic pathfinding visualization with Scout rover",
+  "scripts": {
+    "start": "cargo run --bin serve",
+    "build": "wasm-pack build --target web --out-dir pkg",
+    "build:dev": "wasm-pack build --target web --dev --out-dir pkg",
+    "serve": "http-server ./ -c-1 -p 8000",
+    "clean": "cargo clean && rm -rf pkg target"
+  },
+  "devDependencies": {
+    "http-server": "^0.12.3"
+  }
+}

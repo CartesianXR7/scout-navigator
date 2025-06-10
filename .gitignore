@@ -1,0 +1,16 @@
+# ───── Rust ─────────────────────────────
+/target/
+/pkg/
+
+# ───── Node / PNPM / Yarn ──────────────
+/node_modules/
+
+# ───── macOS & editors ─────────────────
+.DS_Store
+.idea/
+.vscode/
+
+# ───── Sensitive files (examples only) ─
+.env
+*.local
+
