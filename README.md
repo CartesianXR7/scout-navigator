@@ -38,10 +38,10 @@
 
 ## 🏗️ High-level architecture
 
-    Layer-1  Dynamic-Obstacle-Map  (DOB)
+    Layer-1  Dynamic-Obstacle-Map  (DOM)
     Layer-2  Grid UI / visualisation
     Layer-3  Rover + Path planner
-    Layer-4  Static-Obstacle-Map   (SOM)
+    Layer-4  Fixed-Obstacle-Map   (FOM)
 
 *(A deep dive lives in `docs/ARCHITECTURE.md`.)*
 
