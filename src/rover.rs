@@ -1,4 +1,4 @@
-// src/rover.rs - Enhanced with proper layer support
+// src/rover.rs 
 
 use std::collections::HashSet;
 use crate::pathfinding::{AStar, DStarLite, FieldDStar, Pathfinder, Coord};
@@ -8,9 +8,9 @@ pub struct RoverState {
     pub pos: Coord,
     pub goal: Coord,
     pub path: Vec<Coord>,
-    pub obstacles: HashSet<Coord>,  // Original static obstacles (gray)
+    pub obstacles: HashSet<Coord>,  // Original fixed obstacles (gray)
     pub dynamic_obstacles: Vec<Coord>,  // User-added dynamic obstacles (yellow)
-    pub converted_obstacles: HashSet<Coord>, // NEW: Converted obstacles (blue)
+    pub converted_obstacles: HashSet<Coord>, // Converted obstacles (blue)
     pub algorithm: String,
     pub speed: u32,
     pub width: usize,
@@ -34,7 +34,7 @@ impl Rover {
             path: Vec::new(),
             obstacles: HashSet::new(),
             dynamic_obstacles: Vec::new(),
-            converted_obstacles: HashSet::new(), // NEW
+            converted_obstacles: HashSet::new(),
             algorithm: "D*-Lite".into(),
             speed: 5,
             width,
@@ -117,7 +117,7 @@ impl Rover {
             }
         }
         
-        // Mark converted obstacles (NEW: these are also part of static map)
+        // Mark converted obstacles 
         for &(ox, oy) in &self.state.converted_obstacles {
             if ox < self.width && oy < self.height {
                 grid[ox][oy] = true;

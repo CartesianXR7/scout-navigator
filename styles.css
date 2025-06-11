@@ -689,7 +689,7 @@ body {
   .stats-content {
     flex-wrap: wrap;
     gap: 8px;
-    padding-right: 48px; /* Make room for dark mode button */
+    padding-right: 48px; 
   }
   
   .stat-item {
