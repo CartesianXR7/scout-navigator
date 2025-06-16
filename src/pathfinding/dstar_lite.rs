@@ -5,8 +5,8 @@
 // Constructor: `DStarLite::new(grid, start, goal)`.
 // Adapted from Koenig & Likhachev's original 2002 paper.
 
-use std::collections::{BinaryHeap, HashMap};
 use std::cmp::Ordering;
+use std::collections::{BinaryHeap, HashMap};
 
 use crate::pathfinding::pathfinder_trait::Pathfinder;
 
@@ -98,7 +98,10 @@ impl DStarLite {
 
         // Push the goal into open list with its key
         let goal_key = planner.calculate_key(goal);
-        planner.open_list.push(State { coord: goal, k: goal_key });
+        planner.open_list.push(State {
+            coord: goal,
+            k: goal_key,
+        });
 
         planner
     }
@@ -294,7 +297,11 @@ impl Pathfinder for DStarLite {
             self.last_start = start;
             // For each predecessor of old start
             let old_s = self.start;
-            let preds = self.neighbors_cache.get(&old_s).cloned().unwrap_or_default();
+            let preds = self
+                .neighbors_cache
+                .get(&old_s)
+                .cloned()
+                .unwrap_or_default();
             for nbr in preds {
                 let rhs_n = self.compute_rhs(nbr);
                 self.rhs.insert(nbr, rhs_n);
@@ -307,7 +314,10 @@ impl Pathfinder for DStarLite {
         self.rhs.insert(self.goal, 0.0);
 
         let goal_key = self.calculate_key(self.goal);
-        self.open_list.push(State { coord: self.goal, k: goal_key });
+        self.open_list.push(State {
+            coord: self.goal,
+            k: goal_key,
+        });
 
         self.compute_shortest_path();
         self.reconstruct_path()

@@ -1,15 +1,15 @@
-// src/rover.rs 
+// src/rover.rs
 
+use crate::pathfinding::{AStar, Coord, DStarLite, FieldDStar, Pathfinder};
 use std::collections::HashSet;
-use crate::pathfinding::{AStar, DStarLite, FieldDStar, Pathfinder, Coord};
 
 #[derive(Clone, PartialEq)]
 pub struct RoverState {
     pub pos: Coord,
     pub goal: Coord,
     pub path: Vec<Coord>,
-    pub obstacles: HashSet<Coord>,  // Original fixed obstacles (gray)
-    pub dynamic_obstacles: Vec<Coord>,  // User-added dynamic obstacles (yellow)
+    pub obstacles: HashSet<Coord>, // Original fixed obstacles (gray)
+    pub dynamic_obstacles: Vec<Coord>, // User-added dynamic obstacles (yellow)
     pub converted_obstacles: HashSet<Coord>, // Converted obstacles (blue)
     pub algorithm: String,
     pub speed: u32,
@@ -43,8 +43,7 @@ impl Rover {
 
         // Start with empty grid
         let grid = vec![vec![false; height]; width];
-        let pf: Box<dyn Pathfinder<Coord = Coord>> =
-            Box::new(DStarLite::new(grid, start, goal));
+        let pf: Box<dyn Pathfinder<Coord = Coord>> = Box::new(DStarLite::new(grid, start, goal));
 
         Rover {
             state: rover_state,
@@ -62,7 +61,7 @@ impl Rover {
             "Field D*" => Box::new(FieldDStar::new(grid, self.state.pos, self.state.goal)),
             _ => Box::new(DStarLite::new(grid, self.state.pos, self.state.goal)),
         };
-        
+
         Rover {
             state: self.state.clone(),
             pathfinder: pf,
@@ -78,7 +77,7 @@ impl Rover {
     pub fn set_algorithm(&mut self, algo: &str) {
         let grid = self.build_grid();
         self.state.algorithm = algo.to_string();
-        
+
         // Rebuild pathfinder with current grid state
         self.pathfinder = match algo {
             "A*" => Box::new(AStar::new(grid, self.state.pos, self.state.goal)),
@@ -102,31 +101,31 @@ impl Rover {
             .pathfinder
             .compute_path(self.state.pos, self.state.goal)
             .unwrap_or_default();
-        
+
         self.state.path = path.clone();
         path
     }
 
     pub fn build_grid(&self) -> Vec<Vec<bool>> {
         let mut grid = vec![vec![false; self.height]; self.width];
-        
+
         // Mark original static obstacles
         for &(ox, oy) in &self.state.obstacles {
             if ox < self.width && oy < self.height {
                 grid[ox][oy] = true;
             }
         }
-        
-        // Mark converted obstacles 
+
+        // Mark converted obstacles
         for &(ox, oy) in &self.state.converted_obstacles {
             if ox < self.width && oy < self.height {
                 grid[ox][oy] = true;
             }
         }
-        
+
         // NOTE: dynamic_obstacles are NOT included in pathfinding grid
         // They are only visual until converted
-        
+
         grid
     }
 

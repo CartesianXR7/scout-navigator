@@ -17,7 +17,7 @@ pub trait Pathfinder {
     fn compute_path(&mut self, start: Self::Coord, goal: Self::Coord) -> Option<Vec<Self::Coord>>;
 
     /// Inform the algorithm that `coord` is now (un)blocked.
-    /// `is_blocked = true` means “place an obstacle at `coord`,” 
+    /// `is_blocked = true` means “place an obstacle at `coord`,”
     /// `is_blocked = false` means “remove obstacle at `coord`.”
     fn update_obstacle(&mut self, coord: Self::Coord, is_blocked: bool);
 }

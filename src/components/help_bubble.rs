@@ -1,8 +1,8 @@
 // src/components/help_bubble.rs
 
-use yew::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::MouseEvent;
+use yew::prelude::*;
 
 #[derive(Properties, PartialEq)]
 pub struct HelpBubbleProps {
@@ -21,7 +21,7 @@ pub fn help_bubble(props: &HelpBubbleProps) -> Html {
         let is_dragging = is_dragging.clone();
         let drag_start = drag_start.clone();
         let position = position.clone();
-        
+
         Callback::from(move |e: MouseEvent| {
             // Only drag from header
             if let Some(target) = e.target() {
@@ -31,7 +31,7 @@ pub fn help_bubble(props: &HelpBubbleProps) -> Html {
                         is_dragging.set(true);
                         drag_start.set((
                             e.client_x() as f64 - position.0,
-                            e.client_y() as f64 - position.1
+                            e.client_y() as f64 - position.1,
                         ));
                     }
                 }
@@ -43,7 +43,7 @@ pub fn help_bubble(props: &HelpBubbleProps) -> Html {
         let is_dragging = is_dragging.clone();
         let drag_start = drag_start.clone();
         let position = position.clone();
-        
+
         Callback::from(move |e: MouseEvent| {
             if *is_dragging {
                 e.prevent_default();
@@ -56,7 +56,7 @@ pub fn help_bubble(props: &HelpBubbleProps) -> Html {
 
     let onmouseup = {
         let is_dragging = is_dragging.clone();
-        
+
         Callback::from(move |_: MouseEvent| {
             is_dragging.set(false);
         })
@@ -64,7 +64,7 @@ pub fn help_bubble(props: &HelpBubbleProps) -> Html {
 
     let onmouseleave = {
         let is_dragging = is_dragging.clone();
-        
+
         Callback::from(move |_: MouseEvent| {
             is_dragging.set(false);
         })
@@ -78,7 +78,7 @@ pub fn help_bubble(props: &HelpBubbleProps) -> Html {
     };
 
     html! {
-        <div 
+        <div
             class={format!("help-bubble {}", if *is_expanded { "expanded" } else { "" })}
             style={format!("right: {}px; top: {}px;", position.0, position.1)}
             onmousedown={onmousedown}
@@ -89,14 +89,14 @@ pub fn help_bubble(props: &HelpBubbleProps) -> Html {
             <div class="help-header">
                 <span class="help-title">{ "💡 Quick Guide" }</span>
                 <div class="help-controls">
-                    <button 
+                    <button
                         class="help-expand-btn"
                         onclick={toggle_expand}
                         aria-label="Toggle expand"
                     >
                         { if *is_expanded { "−" } else { "+" } }
                     </button>
-                    <button 
+                    <button
                         class="help-close-btn"
                         onclick={Callback::from(move |_| on_close.emit(()))}
                         aria-label="Close help"
@@ -105,7 +105,7 @@ pub fn help_bubble(props: &HelpBubbleProps) -> Html {
                     </button>
                 </div>
             </div>
-            
+
             {if *is_expanded {
                 html! {
                     <div class="help-content">

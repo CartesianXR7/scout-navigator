@@ -1,7 +1,7 @@
 // src/pathfinding/astar.rs
 
-use std::collections::{BinaryHeap, HashMap, HashSet};
 use std::cmp::Ordering;
+use std::collections::{BinaryHeap, HashMap, HashSet};
 
 use crate::pathfinding::pathfinder_trait::Pathfinder;
 
@@ -15,7 +15,9 @@ struct Node {
 
 impl Ord for Node {
     fn cmp(&self, other: &Self) -> Ordering {
-        other.f_score.cmp(&self.f_score)
+        other
+            .f_score
+            .cmp(&self.f_score)
             .then_with(|| self.coord.cmp(&other.coord))
     }
 }
@@ -36,7 +38,11 @@ impl AStar {
     pub fn new(grid: Vec<Vec<bool>>, _start: Coord, _goal: Coord) -> Self {
         let width = grid.len();
         let height = if width > 0 { grid[0].len() } else { 0 };
-        AStar { grid, width, height }
+        AStar {
+            grid,
+            width,
+            height,
+        }
     }
 
     fn heuristic(&self, a: Coord, b: Coord) -> usize {
@@ -47,7 +53,7 @@ impl AStar {
 
     fn neighbors(&self, (x, y): Coord) -> Vec<Coord> {
         let mut result = Vec::with_capacity(4);
-        
+
         // Up
         if y > 0 && x < self.width && (y - 1) < self.height && !self.grid[x][y - 1] {
             result.push((x, y - 1));
@@ -64,7 +70,7 @@ impl AStar {
         if x + 1 < self.width && y < self.height && !self.grid[x + 1][y] {
             result.push((x + 1, y));
         }
-        
+
         result
     }
 }
@@ -81,22 +87,25 @@ impl Pathfinder for AStar {
 
         g_score.insert(start, 0);
         f_score.insert(start, self.heuristic(start, goal));
-        open_set.push(Node { coord: start, f_score: f_score[&start] });
+        open_set.push(Node {
+            coord: start,
+            f_score: f_score[&start],
+        });
 
         while let Some(current_node) = open_set.pop() {
             let current = current_node.coord;
-            
+
             if current == goal {
                 // Reconstruct path
                 let mut path = Vec::new();
                 let mut cur = goal;
                 path.push(cur);
-                
+
                 while let Some(&prev) = came_from.get(&cur) {
                     cur = prev;
                     path.push(cur);
                 }
-                
+
                 path.reverse();
                 return Some(path);
             }
@@ -116,8 +125,11 @@ impl Pathfinder for AStar {
                     g_score.insert(neighbor, tentative_g);
                     let f = tentative_g + self.heuristic(neighbor, goal);
                     f_score.insert(neighbor, f);
-                    
-                    open_set.push(Node { coord: neighbor, f_score: f });
+
+                    open_set.push(Node {
+                        coord: neighbor,
+                        f_score: f,
+                    });
                 }
             }
         }

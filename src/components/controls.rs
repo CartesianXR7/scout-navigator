@@ -1,8 +1,8 @@
 // src/components/controls.rs
 
-use yew::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlInputElement, HtmlSelectElement};
+use yew::prelude::*;
 
 #[derive(Properties, PartialEq)]
 pub struct ControlsProps {
@@ -83,7 +83,7 @@ pub fn controls(props: &ControlsProps) -> Html {
             <div class="panel-header">
                 <h3>{ "Scout Pathfinder" }</h3>
                 <div class="header-controls">
-                    <button 
+                    <button
                         class="toggle-btn"
                         onclick={Callback::from(move |_| on_toggle_panel.emit(()))}
                     >
@@ -91,13 +91,13 @@ pub fn controls(props: &ControlsProps) -> Html {
                     </button>
                 </div>
             </div>
-            
+
             {if !is_panel_minimized {
                 html! {
                     <>
                         <div class="controls-section">
                             <div class="button-grid">
-                                <button 
+                                <button
                                     class={format!("btn btn-primary {}", if find_path_disabled { "disabled" } else { "" })}
                                     onclick={if find_path_disabled { Callback::noop() } else { Callback::from(move |_| on_compute.emit(())) }}
                                     disabled={find_path_disabled}
@@ -105,8 +105,8 @@ pub fn controls(props: &ControlsProps) -> Html {
                                     <span class="btn-icon">{ "🔍" }</span>
                                     { find_path_text }
                                 </button>
-                                
-                                <button 
+
+                                <button
                                     class={format!("btn btn-success {}", if start_journey_disabled { "disabled" } else { "" })}
                                     onclick={if start_journey_disabled { Callback::noop() } else { Callback::from(move |_| on_start_journey.emit(())) }}
                                     disabled={start_journey_disabled}
@@ -114,8 +114,8 @@ pub fn controls(props: &ControlsProps) -> Html {
                                     <span class="btn-icon">{ "🚀" }</span>
                                     { start_journey_text }
                                 </button>
-                                
-                                <button 
+
+                                <button
                                     class={format!("btn btn-secondary {}", if pause_button_disabled { "disabled" } else { "" })}
                                     onclick={if pause_button_disabled { Callback::noop() } else { Callback::from(move |_| on_pause.emit(())) }}
                                     disabled={pause_button_disabled}
@@ -123,8 +123,8 @@ pub fn controls(props: &ControlsProps) -> Html {
                                     <span class="btn-icon">{ "⏸️" }</span>
                                     { "Pause" }
                                 </button>
-                                
-                                <button 
+
+                                <button
                                     class="btn btn-warning"
                                     onclick={Callback::from(move |_| on_restart.emit(()))}
                                     disabled={is_animating}
@@ -132,8 +132,8 @@ pub fn controls(props: &ControlsProps) -> Html {
                                     <span class="btn-icon">{ "🔄" }</span>
                                     { "Restart" }
                                 </button>
-                                
-                                <button 
+
+                                <button
                                     class="btn btn-danger"
                                     onclick={Callback::from(move |_| on_reset.emit(()))}
                                     disabled={is_animating}
@@ -147,9 +147,9 @@ pub fn controls(props: &ControlsProps) -> Html {
                         <div class="controls-section">
                             <div class="select-wrapper">
                                 <label class="control-label">{ "Algorithm" }</label>
-                                <select 
+                                <select
                                     class="select-input"
-                                    onchange={on_change_algo} 
+                                    onchange={on_change_algo}
                                     disabled={is_computing || is_animating}
                                     value={current_algorithm.clone()}
                                 >

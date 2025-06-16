@@ -4,8 +4,8 @@
 // A complete Field D* ("F‐D*") implementation on a 2D boolean grid.
 // Constructor: `FieldDStar::new(grid: Vec<Vec<bool>>, start: Coord, goal: Coord)`.
 
-use std::collections::{BinaryHeap, HashMap};
 use std::cmp::Ordering;
+use std::collections::{BinaryHeap, HashMap};
 
 use crate::pathfinding::pathfinder_trait::Pathfinder;
 
@@ -21,7 +21,9 @@ struct FDState {
 impl Ord for FDState {
     fn cmp(&self, other: &Self) -> Ordering {
         // invert because BinaryHeap is max-heap
-        other.f.cmp(&self.f)
+        other
+            .f
+            .cmp(&self.f)
             .then_with(|| self.coord.cmp(&other.coord))
     }
 }
@@ -73,7 +75,10 @@ impl FieldDStar {
         };
 
         let f0 = (fds.heuristic(start, goal) * 1000.0) as i64;
-        fds.open_list.push(FDState { coord: start, f: f0 });
+        fds.open_list.push(FDState {
+            coord: start,
+            f: f0,
+        });
         fds
     }
 
@@ -128,7 +133,10 @@ impl FieldDStar {
                 self.g.insert(nbr, tentative);
                 self.parent.insert(nbr, u);
                 let f_n = (tentative + self.heuristic(nbr, self.goal)) * 1000.0;
-                self.open_list.push(FDState { coord: nbr, f: f_n as i64 });
+                self.open_list.push(FDState {
+                    coord: nbr,
+                    f: f_n as i64,
+                });
             }
         }
     }
@@ -153,7 +161,10 @@ impl Pathfinder for FieldDStar {
         self.g.insert(start, 0.0);
 
         let f0 = (self.heuristic(start, goal) * 1000.0) as i64;
-        self.open_list.push(FDState { coord: start, f: f0 });
+        self.open_list.push(FDState {
+            coord: start,
+            f: f0,
+        });
 
         while let Some(FDState { coord: u, f: _ }) = self.open_list.pop() {
             if u == goal {

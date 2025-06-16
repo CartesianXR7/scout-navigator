@@ -3,7 +3,7 @@
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
-use tiny_http::{Server, Response, Request, StatusCode, Header};
+use tiny_http::{Header, Request, Response, Server, StatusCode};
 
 /// Guess a MIME type from the file extension
 fn mime_from_path(path: &str) -> &'static str {
@@ -31,16 +31,16 @@ fn mime_from_path(path: &str) -> &'static str {
 /// Handle each incoming HTTP request
 fn handle_request(request: Request) {
     let url = request.url();
-    
+
     // Map "/" → "index.html", else strip leading "/"
     let path = if url == "/" {
         "index.html".to_string()
     } else {
         url.trim_start_matches('/').to_string()
     };
-    
+
     println!("Request for: {}", path);
-    
+
     let response = if Path::new(&path).exists() {
         match File::open(&path) {
             Ok(mut file) => {
@@ -51,25 +51,25 @@ fn handle_request(request: Request) {
                 } else {
                     let mime = mime_from_path(&path);
                     let mut resp = Response::from_data(buf);
-                    
+
                     // Add headers
                     resp.add_header(
                         Header::from_bytes("Content-Type", mime)
-                            .expect("failed to create Content-Type header")
+                            .expect("failed to create Content-Type header"),
                     );
-                    
+
                     // Add CORS headers for WASM
                     resp.add_header(
                         Header::from_bytes("Access-Control-Allow-Origin", "*")
-                            .expect("failed to create CORS header")
+                            .expect("failed to create CORS header"),
                     );
-                    
+
                     // Cache control for development
                     resp.add_header(
                         Header::from_bytes("Cache-Control", "no-cache, no-store, must-revalidate")
-                            .expect("failed to create Cache-Control header")
+                            .expect("failed to create Cache-Control header"),
                     );
-                    
+
                     resp
                 }
             }
@@ -82,7 +82,7 @@ fn handle_request(request: Request) {
         eprintln!("File not found: {}", path);
         Response::from_data(Vec::new()).with_status_code(StatusCode(404))
     };
-    
+
     if let Err(e) = request.respond(response) {
         eprintln!("Failed to send response: {}", e);
     }
@@ -93,7 +93,7 @@ fn main() {
     println!("🚀 Serving Scout Pathfinder on http://127.0.0.1:8000");
     println!("📁 Serving files from current directory");
     println!("Press Ctrl+C to stop the server\n");
-    
+
     for request in server.incoming_requests() {
         handle_request(request);
     }
