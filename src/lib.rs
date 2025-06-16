@@ -1,5 +1,7 @@
 // src/lib.rs
 
+#![allow(deprecated)]
+
 use wasm_bindgen::prelude::*;
 use yew::Renderer;
 
