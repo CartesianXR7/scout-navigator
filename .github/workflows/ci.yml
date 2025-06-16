@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          targets: wasm32-unknown-unknown
+          override: true
+
+      - name: Install wasm-pack
+        run: cargo install wasm-pack
+
+      - name: Build WebAssembly
+        run: wasm-pack build --target web --out-dir pkg
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: npm ci & build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Run Rust lints & tests
+        run: |
+          cargo fmt -- --check
+          cargo clippy -- -D warnings
+          # cargo test -- --nocapture
