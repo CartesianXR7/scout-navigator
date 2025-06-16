@@ -349,10 +349,10 @@ pub fn canvas(props: &CanvasProps) -> Html {
                             context.set_shadow_blur(15.0);
 
                             // Main detection circle (2 cells radius)
-                            context.set_stroke_style(&JsValue::from_str(&format!(
+                            context.set_stroke_style_with_str(&format!(
                                 "rgba(251, 146, 60, {})",
                                 pulse * 0.8
-                            )));
+                            ));
                             context.set_line_width(3.0);
                             context.begin_path();
                             context
@@ -361,10 +361,10 @@ pub fn canvas(props: &CanvasProps) -> Html {
                             context.stroke();
 
                             // Inner circle for visual effect
-                            context.set_stroke_style(&JsValue::from_str(&format!(
+                            context.set_stroke_style_with_str(&format!(
                                 "rgba(251, 146, 60, {})",
                                 pulse * 0.5
-                            )));
+                            ));
                             context.set_line_width(2.0);
                             context.begin_path();
                             context
@@ -391,7 +391,7 @@ pub fn canvas(props: &CanvasProps) -> Html {
                             context.fill();
 
                             // Inner highlight
-                            context.set_fill_style(&JsValue::from_str("rgba(255, 255, 255, 0.4)"));
+                            context.set_fill_style_with_str("rgba(255, 255, 255, 0.4)");
                             context.begin_path();
                             context
                                 .arc(cx - 2.0, cy - 2.0, 2.0, 0.0, std::f64::consts::PI * 2.0)
