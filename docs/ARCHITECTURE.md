@@ -3,7 +3,7 @@
 
 ## Layer Overview (visual)
 
-```text
+Grid Map 4-Layer Architecture
 ┌─────────────────┐
 │ Layer 1 · DOB   │  Dynamic Obstacle Map (amber → blue)
 └────┬────────────┘
@@ -36,7 +36,7 @@ Static Obstacle Block (SOB) - Represents the cells on the map considered obstacl
 NOTE - DOBs, once converted via continuous proximity detection, are added to the Fixed Obstacle Map (FOM) of which in essence is a list of known obstacles. The Rover node references the FOM on every step it takes and, employing a user-chosen pathfinding algorithm, re-calculates an ideal path to the goal. This approach allows the Rover node to adhere to a memory-less strategy where particular map elements are segmented away from its path re-calculation loop.
 
 
-Path Re-Calculation Loop (Memoryless):
+Memoryless Path Re-Calculation Loop:
 1. the Rover node checks if its current coordinates are equal to the coordinates of the Destination / Goal node (boolean TRUE or FALSE)
 2. the Rover node calls the grid map / static object map from LAYER 4 (FOM) to retrieve a list of known obstacle coordinates
 3. the Rover node charts a new path to the goal from its current position

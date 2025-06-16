@@ -1,4 +1,4 @@
-// src/components/main_app.rs - COMPLETE FULL CODE with PROPER LAYER OWNERSHIP
+// src/components/main_app.rs 
 
 use yew::prelude::*;
 use web_sys::window;
@@ -24,7 +24,7 @@ struct JourneyStats {
 // LAYER 4: SOM (Static Obstacle Map) - OWNS: Blocked coordinates for pathfinding ONLY
 #[derive(Clone, PartialEq)]
 struct SomLayer {
-    original_static_obstacles: HashSet<Coord>,    // User-placed static obstacles
+    original_static_obstacles: HashSet<Coord>,    // User-placed fixed obstacle blocks
     converted_dob_obstacles: HashSet<Coord>,      // Converted DOB coordinates - PATHFINDING ONLY
 }
 
@@ -150,7 +150,7 @@ impl RoverLayer {
             return false;
         }
         
-        // COMPLETE REPLACEMENT of PLANNED PATH ONLY - traveled path untouched
+        // COMPLETE REPLACEMENT of PLANNED PATH ONLY
         self.planned_path = new_path;
         web_sys::console::log_1(&format!("✅ NEW planned path COMPLETE - {} steps: {:?} -> {:?} | Traveled: {} unchanged", 
             self.planned_path.len(), 
