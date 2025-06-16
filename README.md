@@ -2,7 +2,7 @@
 *A live-rerouting path-finding visualiser in Rust + WASM*
 
 [![CI](https://github.com/CartesianXR7/ScoutNav/actions/workflows/ci.yml/badge.svg)](https://github.com/CartesianXR7/ScoutNav/actions/workflows/ci.yml)
-[![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPLv3%2B-blue.svg)](LICENSE)
+[![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPLv3%2B-blue.svg)](LICENSE) 
 
 > **Scout** shows how **A\***, **D\*-Lite**, and **Field-D\*** continually (re)compute optimal routes while new obstacles appear mid-journey.
 
