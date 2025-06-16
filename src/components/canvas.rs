@@ -149,12 +149,12 @@ pub fn canvas(props: &CanvasProps) -> Html {
                         let is_dark = body_element.class_list().contains("dark");
 
                         let bg_color = if is_dark { "#0a0a0a" } else { "#fafafa" };
-                        context.set_fill_style_with_str(bg_color);
+                        context.set_fill_style_str(bg_color);
                         context.fill_rect(0.0, 0.0, w_px, h_px);
 
                         // Draw grid lines
                         let grid_color = if is_dark { "#1f1f1f" } else { "#e5e7eb" };
-                        context.set_stroke_style_with_str(grid_color);
+                        context.set_stroke_style_str(grid_color);
                         context.set_line_width(0.5);
 
                         for i in 0..=width {
@@ -175,7 +175,7 @@ pub fn canvas(props: &CanvasProps) -> Html {
 
                         // LAYER 1: Draw original static obstacles (gray)
                         let obstacle_color = if is_dark { "#3f3f46" } else { "#52525b" };
-                        context.set_fill_style_with_str(obstacle_color);
+                        context.set_fill_style_str(obstacle_color);
                         for &(ox, oy) in &rover_state.obstacles {
                             if ox < width && oy < height {
                                 let x = (ox as f64) * cell_size;
@@ -191,7 +191,7 @@ pub fn canvas(props: &CanvasProps) -> Html {
 
                         // LAYER 2: Draw amber DOBs (yellow - undiscovered obstacles)
                         let amber_dob_color = if is_dark { "#d97706" } else { "#f59e0b" };
-                        context.set_fill_style_with_str(amber_dob_color);
+                        context.set_fill_style_str(amber_dob_color);
                         for &(ox, oy) in &amber_dobs {
                             if ox < width && oy < height {
                                 let x = (ox as f64) * cell_size;
@@ -207,7 +207,7 @@ pub fn canvas(props: &CanvasProps) -> Html {
 
                         // LAYER 3: Draw converted obstacles (blue - discovered obstacles)
                         let converted_obstacle_color = if is_dark { "#2563eb" } else { "#3b82f6" };
-                        context.set_fill_style_with_str(converted_obstacle_color);
+                        context.set_fill_style_str(converted_obstacle_color);
                         for &(ox, oy) in &rover_state.converted_obstacles {
                             if ox < width && oy < height {
                                 let x = (ox as f64) * cell_size;
@@ -224,7 +224,7 @@ pub fn canvas(props: &CanvasProps) -> Html {
                         // LAYER 4: Draw TURQUOISE traveled path (from visual start to current rover position)
                         if !traveled_path.is_empty() {
                             // Turquoise path line
-                            context.set_stroke_style_with_str("#14b8a6");
+                            context.set_stroke_style_str("#14b8a6");
                             context.set_line_width(3.0);
                             context.set_line_cap("round");
                             context.set_line_join("round");
@@ -243,7 +243,7 @@ pub fn canvas(props: &CanvasProps) -> Html {
                             context.stroke();
 
                             // Turquoise path dots
-                            context.set_fill_style_with_str("#0d9488");
+                            context.set_fill_style_str("#0d9488");
                             for &(x, y) in traveled_path.iter().skip(1) {
                                 let px = (x as f64) * cell_size + (cell_size / 2.0);
                                 let py = (y as f64) * cell_size + (cell_size / 2.0);
@@ -258,7 +258,7 @@ pub fn canvas(props: &CanvasProps) -> Html {
 
                         // LAYER 5: Draw PURPLE future path (from current rover position to goal)
                         if !rover_state.path.is_empty() && rover_state.path.len() > 1 {
-                            context.set_stroke_style_with_str("#a855f7");
+                            context.set_stroke_style_str("#a855f7");
                             context.set_line_width(3.0);
                             context.set_line_cap("round");
                             context.set_line_join("round");
@@ -278,7 +278,7 @@ pub fn canvas(props: &CanvasProps) -> Html {
                             context.stroke();
 
                             // Purple path dots
-                            context.set_fill_style_with_str("#9333ea");
+                            context.set_fill_style_str("#9333ea");
                             if rover_state.path.len() > 2 {
                                 for &(x, y) in
                                     rover_state.path[1..rover_state.path.len() - 1].iter()
@@ -301,11 +301,11 @@ pub fn canvas(props: &CanvasProps) -> Html {
                             let x = (start_x as f64) * cell_size;
                             let y = (start_y as f64) * cell_size;
 
-                            context.set_fill_style_with_str("#16a34a");
+                            context.set_fill_style_str("#16a34a");
                             context.fill_rect(x + 2.0, y + 2.0, cell_size - 4.0, cell_size - 4.0);
 
                             // Text
-                            context.set_fill_style_with_str("#FFFFFF");
+                            context.set_fill_style_str("#FFFFFF");
                             context.set_font("bold 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif");
                             context.set_text_align("center");
                             context
@@ -319,11 +319,11 @@ pub fn canvas(props: &CanvasProps) -> Html {
                             let x = (goal_x as f64) * cell_size;
                             let y = (goal_y as f64) * cell_size;
 
-                            context.set_fill_style_with_str("#dc2626");
+                            context.set_fill_style_str("#dc2626");
                             context.fill_rect(x + 2.0, y + 2.0, cell_size - 4.0, cell_size - 4.0);
 
                             // Text
-                            context.set_fill_style_with_str("#FFFFFF");
+                            context.set_fill_style_str("#FFFFFF");
                             context.set_font("bold 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif");
                             context.set_text_align("center");
                             context
@@ -349,7 +349,7 @@ pub fn canvas(props: &CanvasProps) -> Html {
                             context.set_shadow_blur(15.0);
 
                             // Main detection circle (2 cells radius)
-                            context.set_stroke_style_with_str(&format!(
+                            context.set_stroke_style_str(&format!(
                                 "rgba(251, 146, 60, {})",
                                 pulse * 0.8
                             ));
@@ -361,7 +361,7 @@ pub fn canvas(props: &CanvasProps) -> Html {
                             context.stroke();
 
                             // Inner circle for visual effect
-                            context.set_stroke_style_with_str(&format!(
+                            context.set_stroke_style_str(&format!(
                                 "rgba(251, 146, 60, {})",
                                 pulse * 0.5
                             ));
@@ -375,7 +375,7 @@ pub fn canvas(props: &CanvasProps) -> Html {
                             context.restore();
 
                             // Rover body (khaki brown)
-                            context.set_fill_style_with_str("#8b7355");
+                            context.set_fill_style_str("#8b7355");
                             context.begin_path();
                             context
                                 .arc(cx, cy, 10.0, 0.0, std::f64::consts::PI * 2.0)
@@ -383,7 +383,7 @@ pub fn canvas(props: &CanvasProps) -> Html {
                             context.fill();
 
                             // Inner circle
-                            context.set_fill_style_with_str("#a0926b");
+                            context.set_fill_style_str("#a0926b");
                             context.begin_path();
                             context
                                 .arc(cx, cy, 6.0, 0.0, std::f64::consts::PI * 2.0)
@@ -391,7 +391,7 @@ pub fn canvas(props: &CanvasProps) -> Html {
                             context.fill();
 
                             // Inner highlight
-                            context.set_fill_style_with_str("rgba(255, 255, 255, 0.4)");
+                            context.set_fill_style_str("rgba(255, 255, 255, 0.4)");
                             context.begin_path();
                             context
                                 .arc(cx - 2.0, cy - 2.0, 2.0, 0.0, std::f64::consts::PI * 2.0)
