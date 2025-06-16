@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 // src/components/canvas.rs - Updated for proper layer rendering
 
 use crate::pathfinding::Coord;
