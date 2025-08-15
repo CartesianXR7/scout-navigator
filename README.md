@@ -1,4 +1,4 @@
-# Scout / ScoutNav 🚀  
+# scout-navigator
 *A live-rerouting path-finding visualiser in Rust + WASM*
 
 [![CI](https://github.com/CartesianXR7/ScoutNav/actions/workflows/ci.yml/badge.svg)](https://github.com/CartesianXR7/ScoutNav/actions/workflows/ci.yml)
@@ -8,7 +8,7 @@
 
 ---
 
-## ✨ Features
+## Features
 
 | Area | Highlights |
 |------|------------|
@@ -20,7 +20,7 @@
 
 ---
 
-## 🚀 Quick start
+## Quick start
 
     # once per machine
     rustup target add wasm32-unknown-unknown
@@ -36,7 +36,7 @@
 
 ---
 
-## 🏗️ High-level architecture
+## High-level architecture
 
     Layer-1  Dynamic-Obstacle-Map  (DOM)
     Layer-2  Grid UI / visualisation
@@ -47,7 +47,7 @@
 
 ---
 
-## 📂 Directory layout
+## Directory layout
 
     src/bin/serve.rs       — mini HTTP server
     src/components/        — Yew UI widgets
@@ -59,14 +59,14 @@
 
 ---
 
-## 🧪 Tests & CI
+## Tests & CI
 
 * Run `cargo test` locally.  
 * GitHub Actions: check → test → `wasm-pack build`.
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 1. `git switch -c feat/my-change`  
 2. `cargo fmt && cargo clippy -- -D warnings`  
@@ -75,7 +75,7 @@
 
 ---
 
-## 📜 License
+## License
 
 GPL-3.0-or-later – see **LICENSE**.
 
