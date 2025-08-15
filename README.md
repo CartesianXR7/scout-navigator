@@ -61,15 +61,29 @@ Grid Map 4-Layer Architecture
 ---
 
 ## Directory layout
-
-    src/bin/serve.rs       — mini HTTP server
-    src/components/        — Yew UI widgets
-    src/pathfinding/       — A*, D*-Lite, Field-D* + trait
-    src/rover.rs           — rover state machine
-    index.html, styles.css — SPA shell
-    Cargo.toml / Cargo.lock
-    docs/                  — deep docs (architecture, gifs…)
-
+```bash
+Directory Overview:
+ScoutNav/
+├── src/
+│   ├── bin/serve.rs            # dev HTTP server (localhost:8000)
+│   ├── components/             # Yew UI widgets
+│   │   ├── canvas.rs           # WebGL/2-D drawing surface
+│   │   ├── controls.rs         # play/pause/algorithm selectors
+│   │   ├── help_bubble.rs      # inline docs
+│   │   └── main_app.rs         # root <App/>
+│   ├── pathfinding/
+│   │   ├── astar.rs
+│   │   ├── dstar_lite.rs
+│   │   ├── field_dstar.rs
+│   │   └── pathfinder_trait.rs # common interface
+│   ├── rover.rs                # agent FSM: move → scan → update map
+│   └── lib.rs                  # wasm-bindgen glue
+├── index.html / styles.css     # SPA shell + theming
+├── Cargo.toml / Cargo.lock
+├── package.json / package-lock.json
+├── docs/                       # (demo.gif, architecture.svg etc.)
+└── .github/workflows/ci.yml    # GitHub Actions
+```
 ---
 
 ## Tests & CI
