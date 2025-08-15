@@ -37,13 +37,26 @@
 ---
 
 ## High-level architecture
+```bash
+Grid Map 4-Layer Architecture
+┌─────────────────┐
+│ Layer 1 · DOB   │  Dynamic Obstacle Map (amber → blue)
+└────┬────────────┘
+     ↓
+┌─────────────────┐
+│ Layer 2 · UI    │  Grid visualisation / user input
+└────┬────────────┘
+     ↓
+┌─────────────────┐
+│ Layer 3 · Rover │  Rover state + path planner
+└────┬────────────┘
+     ↓
+┌─────────────────┐
+│ Layer 4 · FOM   │  Fixed Obstacle Map (authoritative)
+└─────────────────┘
+```
 
-    Layer-1  Dynamic-Obstacle-Map  (DOM)
-    Layer-2  Grid UI / visualisation
-    Layer-3  Rover + Path planner
-    Layer-4  Fixed-Obstacle-Map   (FOM)
-
-*(A deep dive lives in `docs/ARCHITECTURE.md`.)*
+*(A deep dive lives in `[docs/ARCHITECTURE.md](https://github.com/CartesianXR7/scout-navigator/blob/main/docs/ARCHITECTURE.md)`.)*
 
 ---
 
