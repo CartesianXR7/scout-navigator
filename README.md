@@ -56,7 +56,7 @@ Grid Map 4-Layer Architecture
 └─────────────────┘
 ```
 
-*(A deep dive lives in `[docs/ARCHITECTURE.md](https://github.com/CartesianXR7/scout-navigator/blob/main/docs/ARCHITECTURE.md)`.)*
+*(A deep dive lives in [docs/ARCHITECTURE.md](https://github.com/CartesianXR7/scout-navigator/blob/main/docs/ARCHITECTURE.md))*
 
 ---
 
