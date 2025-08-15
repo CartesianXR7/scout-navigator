@@ -77,5 +77,5 @@
 
 ## License
 
-GPL-3.0-or-later – see **LICENSE**.
+GPL-3.0-or-later – see **[LICENSE](https://github.com/CartesianXR7/scout-navigator/blob/main/LICENSE)**.
 
