@@ -18,7 +18,7 @@ pub struct CanvasProps {
     pub width: usize,
     pub height: usize,
     pub rover_state: crate::rover::RoverState,
-    pub visual_start: Coord,       // Visual start marker position
+    pub visual_start: Coord,      
     pub traveled_path: Vec<Coord>, // Turquoise path
     pub amber_dobs: Vec<Coord>,    // Amber DOBs for display
     pub on_mouse_down: Callback<Coord>,
@@ -34,10 +34,8 @@ pub fn canvas(props: &CanvasProps) -> Html {
     let drag_mode = use_state(|| DragMode::None);
     let animation_frame = use_state(|| 0i32);
 
-    // Dynamic cell size based on container - responsive to window resize
     let cell_size = use_state(|| 20.0f64);
 
-    // Calculate cell size based on container - responsive to resize
     {
         let canvas_ref = canvas_ref.clone();
         let cell_size = cell_size.clone();
@@ -64,10 +62,8 @@ pub fn canvas(props: &CanvasProps) -> Html {
                 }
             };
 
-            // Initial size calculation
             update_size();
 
-            // Add resize event listener
             let window = web_sys::window().unwrap();
             let closure = wasm_bindgen::closure::Closure::wrap(Box::new(move || {
                 update_size();
@@ -77,7 +73,6 @@ pub fn canvas(props: &CanvasProps) -> Html {
                 .add_event_listener_with_callback("resize", closure.as_ref().unchecked_ref())
                 .unwrap();
 
-            // Return cleanup function
             move || {
                 if let Some(window) = web_sys::window() {
                     let _ = window.remove_event_listener_with_callback(
@@ -90,7 +85,6 @@ pub fn canvas(props: &CanvasProps) -> Html {
         });
     }
 
-    // Animation timer for pulsing effect
     {
         let animation_frame = animation_frame.clone();
         use_effect_with((), move |_| {
@@ -102,7 +96,6 @@ pub fn canvas(props: &CanvasProps) -> Html {
         });
     }
 
-    // Main rendering effect - separate from animation
     {
         let canvas_ref = canvas_ref.clone();
         let rover_state = props.rover_state.clone();
@@ -128,13 +121,11 @@ pub fn canvas(props: &CanvasProps) -> Html {
                     if let Some(canvas) = canvas_ref.cast::<HtmlCanvasElement>() {
                         let cell_size = cell_size_val;
 
-                        // Set canvas size
                         let w_px = (width as f64) * cell_size;
                         let h_px = (height as f64) * cell_size;
                         canvas.set_width(w_px as u32);
                         canvas.set_height(h_px as u32);
 
-                        // Get 2D context
                         let context = canvas
                             .get_context("2d")
                             .unwrap()
@@ -142,7 +133,6 @@ pub fn canvas(props: &CanvasProps) -> Html {
                             .dyn_into::<web_sys::CanvasRenderingContext2d>()
                             .unwrap();
 
-                        // Clear background
                         let doc = window().unwrap().document().unwrap();
                         let body = doc.body().unwrap();
                         let body_element = body.dyn_into::<HtmlBodyElement>().unwrap();
@@ -152,7 +142,6 @@ pub fn canvas(props: &CanvasProps) -> Html {
                         context.set_fill_style_str(bg_color);
                         context.fill_rect(0.0, 0.0, w_px, h_px);
 
-                        // Draw grid lines
                         let grid_color = if is_dark { "#1f1f1f" } else { "#e5e7eb" };
                         context.set_stroke_style_str(grid_color);
                         context.set_line_width(0.5);
@@ -173,7 +162,6 @@ pub fn canvas(props: &CanvasProps) -> Html {
                             context.stroke();
                         }
 
-                        // LAYER 1: Draw original static obstacles (gray)
                         let obstacle_color = if is_dark { "#3f3f46" } else { "#52525b" };
                         context.set_fill_style_str(obstacle_color);
                         for &(ox, oy) in &rover_state.obstacles {
@@ -189,7 +177,6 @@ pub fn canvas(props: &CanvasProps) -> Html {
                             }
                         }
 
-                        // LAYER 2: Draw amber DOBs (yellow - undiscovered obstacles)
                         let amber_dob_color = if is_dark { "#d97706" } else { "#f59e0b" };
                         context.set_fill_style_str(amber_dob_color);
                         for &(ox, oy) in &amber_dobs {
@@ -205,7 +192,6 @@ pub fn canvas(props: &CanvasProps) -> Html {
                             }
                         }
 
-                        // LAYER 3: Draw converted obstacles (blue - discovered obstacles)
                         let converted_obstacle_color = if is_dark { "#2563eb" } else { "#3b82f6" };
                         context.set_fill_style_str(converted_obstacle_color);
                         for &(ox, oy) in &rover_state.converted_obstacles {
@@ -221,9 +207,7 @@ pub fn canvas(props: &CanvasProps) -> Html {
                             }
                         }
 
-                        // LAYER 4: Draw TURQUOISE traveled path (from visual start to current rover position)
                         if !traveled_path.is_empty() {
-                            // Turquoise path line
                             context.set_stroke_style_str("#14b8a6");
                             context.set_line_width(3.0);
                             context.set_line_cap("round");
@@ -242,7 +226,6 @@ pub fn canvas(props: &CanvasProps) -> Html {
                             }
                             context.stroke();
 
-                            // Turquoise path dots
                             context.set_fill_style_str("#0d9488");
                             for &(x, y) in traveled_path.iter().skip(1) {
                                 let px = (x as f64) * cell_size + (cell_size / 2.0);
@@ -256,7 +239,6 @@ pub fn canvas(props: &CanvasProps) -> Html {
                             }
                         }
 
-                        // LAYER 5: Draw PURPLE future path (from current rover position to goal)
                         if !rover_state.path.is_empty() && rover_state.path.len() > 1 {
                             context.set_stroke_style_str("#a855f7");
                             context.set_line_width(3.0);
@@ -277,7 +259,6 @@ pub fn canvas(props: &CanvasProps) -> Html {
                             }
                             context.stroke();
 
-                            // Purple path dots
                             context.set_fill_style_str("#9333ea");
                             if rover_state.path.len() > 2 {
                                 for &(x, y) in
@@ -295,7 +276,6 @@ pub fn canvas(props: &CanvasProps) -> Html {
                             }
                         }
 
-                        // LAYER 6: Draw visual start position (green) - stays in original position
                         let (start_x, start_y) = visual_start;
                         if start_x < width && start_y < height {
                             let x = (start_x as f64) * cell_size;
@@ -313,7 +293,6 @@ pub fn canvas(props: &CanvasProps) -> Html {
                                 .unwrap();
                         }
 
-                        // LAYER 7: Draw goal position (red)
                         let (goal_x, goal_y) = rover_state.goal;
                         if goal_x < width && goal_y < height {
                             let x = (goal_x as f64) * cell_size;
@@ -331,24 +310,19 @@ pub fn canvas(props: &CanvasProps) -> Html {
                                 .unwrap();
                         }
 
-                        // LAYER 8: Draw rover with circular orange detection range
                         let (rx, ry) = rover_state.pos;
                         if rx < width && ry < height {
                             let cx = (rx as f64) * cell_size + (cell_size / 2.0);
                             let cy = (ry as f64) * cell_size + (cell_size / 2.0);
 
-                            // Pulsing circular detection range in orange (2 cells radius)
                             let time = (frame as f64) * 0.02;
                             let pulse = (time.sin() * 0.3 + 0.7).max(0.1);
 
-                            // Draw circular detection range
                             context.save();
 
-                            // Set shadow for glow effect
                             context.set_shadow_color("rgba(251, 146, 60, 0.5)");
                             context.set_shadow_blur(15.0);
 
-                            // Main detection circle (2 cells radius)
                             context.set_stroke_style_str(&format!(
                                 "rgba(251, 146, 60, {})",
                                 pulse * 0.8
@@ -360,7 +334,6 @@ pub fn canvas(props: &CanvasProps) -> Html {
                                 .unwrap();
                             context.stroke();
 
-                            // Inner circle for visual effect
                             context.set_stroke_style_str(&format!(
                                 "rgba(251, 146, 60, {})",
                                 pulse * 0.5
@@ -374,7 +347,6 @@ pub fn canvas(props: &CanvasProps) -> Html {
 
                             context.restore();
 
-                            // Rover body (khaki brown)
                             context.set_fill_style_str("#8b7355");
                             context.begin_path();
                             context
@@ -382,7 +354,6 @@ pub fn canvas(props: &CanvasProps) -> Html {
                                 .unwrap();
                             context.fill();
 
-                            // Inner circle
                             context.set_fill_style_str("#a0926b");
                             context.begin_path();
                             context
@@ -390,7 +361,6 @@ pub fn canvas(props: &CanvasProps) -> Html {
                                 .unwrap();
                             context.fill();
 
-                            // Inner highlight
                             context.set_fill_style_str("rgba(255, 255, 255, 0.4)");
                             context.begin_path();
                             context
@@ -401,10 +371,8 @@ pub fn canvas(props: &CanvasProps) -> Html {
                     }
                 };
 
-                // Initial render
                 render();
 
-                // Set up animation loop
                 let render_loop = gloo_timers::callback::Interval::new(50, move || {
                     render();
                 });
@@ -414,7 +382,6 @@ pub fn canvas(props: &CanvasProps) -> Html {
         );
     }
 
-    // Mouse event handlers (unchanged)
     let width = props.width;
     let height = props.height;
     let cell_size_val = *cell_size;
