@@ -5,7 +5,6 @@ use std::io::Read;
 use std::path::Path;
 use tiny_http::{Header, Request, Response, Server, StatusCode};
 
-/// Guess a MIME type from the file extension
 fn mime_from_path(path: &str) -> &'static str {
     if path.ends_with(".html") {
         "text/html; charset=utf-8"
@@ -28,11 +27,9 @@ fn mime_from_path(path: &str) -> &'static str {
     }
 }
 
-/// Handle each incoming HTTP request
 fn handle_request(request: Request) {
     let url = request.url();
 
-    // Map "/" → "index.html", else strip leading "/"
     let path = if url == "/" {
         "index.html".to_string()
     } else {
@@ -52,19 +49,16 @@ fn handle_request(request: Request) {
                     let mime = mime_from_path(&path);
                     let mut resp = Response::from_data(buf);
 
-                    // Add headers
                     resp.add_header(
                         Header::from_bytes("Content-Type", mime)
                             .expect("failed to create Content-Type header"),
                     );
 
-                    // Add CORS headers for WASM
                     resp.add_header(
                         Header::from_bytes("Access-Control-Allow-Origin", "*")
                             .expect("failed to create CORS header"),
                     );
 
-                    // Cache control for development
                     resp.add_header(
                         Header::from_bytes("Cache-Control", "no-cache, no-store, must-revalidate")
                             .expect("failed to create Cache-Control header"),
