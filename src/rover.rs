@@ -8,9 +8,9 @@ pub struct RoverState {
     pub pos: Coord,
     pub goal: Coord,
     pub path: Vec<Coord>,
-    pub obstacles: HashSet<Coord>, // Original fixed obstacles (gray)
-    pub dynamic_obstacles: Vec<Coord>, // User-added dynamic obstacles (yellow)
-    pub converted_obstacles: HashSet<Coord>, // Converted obstacles (blue)
+    pub obstacles: HashSet<Coord>, 
+    pub dynamic_obstacles: Vec<Coord>, 
+    pub converted_obstacles: HashSet<Coord>, 
     pub algorithm: String,
     pub speed: u32,
     pub width: usize,
@@ -41,7 +41,6 @@ impl Rover {
             height,
         };
 
-        // Start with empty grid
         let grid = vec![vec![false; height]; width];
         let pf: Box<dyn Pathfinder<Coord = Coord>> = Box::new(DStarLite::new(grid, start, goal));
 
@@ -78,7 +77,6 @@ impl Rover {
         let grid = self.build_grid();
         self.state.algorithm = algo.to_string();
 
-        // Rebuild pathfinder with current grid state
         self.pathfinder = match algo {
             "A*" => Box::new(AStar::new(grid, self.state.pos, self.state.goal)),
             "D*-Lite" => Box::new(DStarLite::new(grid, self.state.pos, self.state.goal)),
@@ -88,7 +86,6 @@ impl Rover {
     }
 
     pub fn compute_path_now(&mut self) -> Vec<Coord> {
-        // Rebuild pathfinder with current obstacles
         let grid = self.build_grid();
         self.pathfinder = match self.state.algorithm.as_str() {
             "A*" => Box::new(AStar::new(grid, self.state.pos, self.state.goal)),
@@ -109,22 +106,17 @@ impl Rover {
     pub fn build_grid(&self) -> Vec<Vec<bool>> {
         let mut grid = vec![vec![false; self.height]; self.width];
 
-        // Mark original static obstacles
         for &(ox, oy) in &self.state.obstacles {
             if ox < self.width && oy < self.height {
                 grid[ox][oy] = true;
             }
         }
 
-        // Mark converted obstacles
         for &(ox, oy) in &self.state.converted_obstacles {
             if ox < self.width && oy < self.height {
                 grid[ox][oy] = true;
             }
         }
-
-        // NOTE: dynamic_obstacles are NOT included in pathfinding grid
-        // They are only visual until converted
 
         grid
     }
