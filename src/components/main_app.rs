@@ -21,11 +21,10 @@ struct JourneyStats {
     path_efficiency: f64,
 }
 
-// LAYER 4: SOM (Static Obstacle Map) - OWNS: Blocked coordinates for pathfinding ONLY
 #[derive(Clone, PartialEq)]
 struct SomLayer {
-    original_static_obstacles: HashSet<Coord>, // User-placed fixed obstacle blocks
-    converted_dob_obstacles: HashSet<Coord>,   // Converted DOB coordinates - PATHFINDING ONLY
+    original_static_obstacles: HashSet<Coord>, 
+    converted_dob_obstacles: HashSet<Coord>,   
 }
 
 impl SomLayer {
@@ -36,7 +35,6 @@ impl SomLayer {
         }
     }
 
-    // ONLY PURPOSE: Provide complete blocked coordinates to Rover Layer for pathfinding
     fn get_complete_obstacle_map(&self) -> Vec<Coord> {
         self.original_static_obstacles
             .union(&self.converted_dob_obstacles)
@@ -44,7 +42,6 @@ impl SomLayer {
             .collect()
     }
 
-    // Receive converted DOB coordinate from Layer 1 - COORDINATE ONLY, no display data
     fn add_converted_dob(&mut self, coord: Coord) {
         self.converted_dob_obstacles.insert(coord);
         web_sys::console::log_1(
@@ -56,7 +53,6 @@ impl SomLayer {
         );
     }
 
-    // Set initial static obstacles (called on "Find Path")
     fn set_initial_obstacles(&mut self, obstacles: HashSet<Coord>) {
         self.original_static_obstacles = obstacles;
         web_sys::console::log_1(
@@ -68,26 +64,23 @@ impl SomLayer {
         );
     }
 
-    // Check if cell is occupied (for DOB placement validation)
     fn is_cell_occupied(&self, coord: Coord) -> bool {
         self.original_static_obstacles.contains(&coord)
             || self.converted_dob_obstacles.contains(&coord)
     }
 
-    // Clear converted coordinates (for restart)
     fn clear_converted_dob_obstacles(&mut self) {
         self.converted_dob_obstacles.clear();
     }
 }
 
-// LAYER 3: ROVER LAYER - OWNS: All path data (traveled and planned)
 #[derive(Clone, PartialEq)]
 struct RoverLayer {
     current_position: Coord,
     goal_position: Coord,
     start_position: Coord,
-    traveled_path: Vec<Coord>, // OWNED: Historical path data
-    planned_path: Vec<Coord>,  // OWNED: Current planned path data
+    traveled_path: Vec<Coord>, 
+    planned_path: Vec<Coord>,  
     algorithm: String,
     is_journey_active: bool,
 }
@@ -105,7 +98,6 @@ impl RoverLayer {
         }
     }
 
-    // ONLY PURPOSE: Compute NEW planned path using blocked coordinates from SOM Layer
     fn compute_path_from_som(&mut self, obstacle_map: Vec<Coord>) -> bool {
         web_sys::console::log_1(&format!("🤖 Rover Layer 3: Computing COMPLETELY NEW planned path from {:?} to {:?} using {}", 
             self.current_position, self.goal_position, self.algorithm).into());
@@ -124,27 +116,23 @@ impl RoverLayer {
             .into(),
         );
 
-        // CRITICAL: Completely clear PLANNED PATH ONLY (traveled path stays intact)
         self.planned_path.clear();
         self.planned_path.shrink_to_fit();
         web_sys::console::log_1(&"🔥 CLEARED planned path (traveled path untouched)".into());
 
-        // Minimal goal protection - only if directly blocked by SOM obstacles
         if obstacle_map.contains(&self.goal_position) {
             web_sys::console::log_1(&"❌ Goal is directly blocked by SOM obstacle".into());
             return false;
         }
 
-        // First try simple direct path if no SOM obstacles in the way
         if obstacle_map.is_empty() {
             let simple_path =
                 Self::create_simple_direct_path(self.current_position, self.goal_position);
             if !simple_path.is_empty() {
-                // COMPLETE REPLACEMENT of PLANNED PATH ONLY
                 self.planned_path = simple_path;
                 web_sys::console::log_1(
                     &format!(
-                        "✅ NEW planned path (simple direct) - {} steps | Traveled: {} unchanged",
+                        "NEW planned path (simple direct) - {} steps | Traveled: {} unchanged",
                         self.planned_path.len(),
                         self.traveled_path.len()
                     )
@@ -154,7 +142,6 @@ impl RoverLayer {
             }
         }
 
-        // Create pathfinding rover with SOM obstacle coordinates ONLY
         let mut rover = Rover::new(50, 30);
         rover.set_position(self.current_position);
         rover.set_goal(self.goal_position);
@@ -164,15 +151,13 @@ impl RoverLayer {
         let new_path = rover.compute_path_now();
 
         if new_path.is_empty() {
-            // Fallback to simple pathfinding
             let fallback_path =
                 Self::create_greedy_path(self.current_position, self.goal_position, &obstacle_map);
             if !fallback_path.is_empty() {
-                // COMPLETE REPLACEMENT of PLANNED PATH ONLY
                 self.planned_path = fallback_path;
                 web_sys::console::log_1(
                     &format!(
-                        "✅ NEW planned path (fallback) - {} steps | Traveled: {} unchanged",
+                        "NEW planned path (fallback) - {} steps | Traveled: {} unchanged",
                         self.planned_path.len(),
                         self.traveled_path.len()
                     )
@@ -181,15 +166,14 @@ impl RoverLayer {
                 return true;
             }
 
-            web_sys::console::log_1(&"❌ Rover Layer 3: All pathfinding methods failed".into());
+            web_sys::console::log_1(&"Rover Layer 3: All pathfinding methods failed".into());
             return false;
         }
 
-        // Minimal validation: just check path starts correctly
         if !new_path.is_empty() && new_path[0] != self.current_position {
             web_sys::console::log_1(
                 &format!(
-                    "❌ Rover Layer 3: Path validation failed - starts at {:?}, expected {:?}",
+                    "Rover Layer 3: Path validation failed - starts at {:?}, expected {:?}",
                     new_path[0], self.current_position
                 )
                 .into(),
@@ -197,11 +181,10 @@ impl RoverLayer {
             return false;
         }
 
-        // COMPLETE REPLACEMENT of PLANNED PATH ONLY
         self.planned_path = new_path;
         web_sys::console::log_1(
             &format!(
-                "✅ NEW planned path COMPLETE - {} steps: {:?} -> {:?} | Traveled: {} unchanged",
+                "NEW planned path COMPLETE - {} steps: {:?} -> {:?} | Traveled: {} unchanged",
                 self.planned_path.len(),
                 self.planned_path.first().unwrap_or(&(0, 0)),
                 self.planned_path.last().unwrap_or(&(0, 0)),
@@ -212,7 +195,6 @@ impl RoverLayer {
         true
     }
 
-    // Simple direct path for when there are no obstacles
     fn create_simple_direct_path(start: Coord, goal: Coord) -> Vec<Coord> {
         let mut path = vec![start];
         let mut current = start;
@@ -221,7 +203,6 @@ impl RoverLayer {
             let (cx, cy) = current;
             let (gx, gy) = goal;
 
-            // Move towards goal
             let next_x = if cx < gx {
                 cx + 1
             } else if cx > gx {
@@ -240,7 +221,6 @@ impl RoverLayer {
             current = (next_x, next_y);
             path.push(current);
 
-            // Safety check to prevent infinite loops
             if path.len() > 1000 {
                 break;
             }
@@ -249,7 +229,6 @@ impl RoverLayer {
         path
     }
 
-    // Greedy pathfinding that avoids obstacles
     fn create_greedy_path(start: Coord, goal: Coord, obstacles: &[Coord]) -> Vec<Coord> {
         use std::collections::HashSet;
 
@@ -258,7 +237,6 @@ impl RoverLayer {
         let mut current = start;
 
         for _ in 0..1000 {
-            // Limit iterations
             if current == goal {
                 break;
             }
@@ -266,11 +244,9 @@ impl RoverLayer {
             let (cx, cy) = current;
             let (gx, gy) = goal;
 
-            // Try moving towards goal
             let mut best_next = current;
             let mut best_distance = f64::INFINITY;
 
-            // Check all 4 directions
             for (dx, dy) in [(0, 1), (0, -1), (1, 0), (-1, 0)] {
                 let next_x = cx as i32 + dx;
                 let next_y = cy as i32 + dy;
@@ -290,7 +266,6 @@ impl RoverLayer {
             }
 
             if best_next == current {
-                // Stuck, try to find any free adjacent cell
                 for (dx, dy) in [(0, 1), (0, -1), (1, 0), (-1, 0)] {
                     let next_x = cx as i32 + dx;
                     let next_y = cy as i32 + dy;
@@ -306,7 +281,7 @@ impl RoverLayer {
             }
 
             if best_next == current {
-                break; // No free adjacent cells
+                break;
             }
 
             current = best_next;
@@ -316,16 +291,15 @@ impl RoverLayer {
         if current == goal {
             path
         } else {
-            Vec::new() // Failed to reach goal
+            Vec::new()
         }
     }
 
-    // ONLY PURPOSE: Update OWNED position and path data with CLEAR separation
     fn execute_movement_step(&mut self) -> bool {
         if self.planned_path.len() < 2 {
             web_sys::console::log_1(
                 &format!(
-                    "❌ Cannot move - planned path too short: {}",
+                    "Cannot move - planned path too short: {}",
                     self.planned_path.len()
                 )
                 .into(),
@@ -333,31 +307,27 @@ impl RoverLayer {
             return false;
         }
 
-        // CRITICAL VALIDATION: Ensure we're following the correct path
         let current_step = self.planned_path[0];
         if current_step != self.current_position {
-            web_sys::console::log_1(&format!("⚠️ PATH DESYNC: Expected current position {:?}, but planned path starts at {:?}", 
+            web_sys::console::log_1(&format!("PATH DESYNC: Expected current position {:?}, but planned path starts at {:?}", 
                 self.current_position, current_step).into());
-            // Fix the desync by updating the path to start from current position
             if self.planned_path.len() > 1 {
                 self.planned_path[0] = self.current_position;
                 web_sys::console::log_1(&"🔧 Fixed path desync".into());
             } else {
-                web_sys::console::log_1(&"❌ Cannot fix path desync - path too short".into());
+                web_sys::console::log_1(&"Cannot fix path desync - path too short".into());
                 return false;
             }
         }
 
-        // Take the next step in the PLANNED path
         let next_position = self.planned_path[1];
 
-        // Additional validation: ensure next step is adjacent
         let dx = (self.current_position.0 as i32 - next_position.0 as i32).abs();
         let dy = (self.current_position.1 as i32 - next_position.1 as i32).abs();
         if dx > 1 || dy > 1 {
             web_sys::console::log_1(
                 &format!(
-                    "❌ INVALID STEP: From {:?} to {:?} - not adjacent (dx={}, dy={})",
+                    "INVALID STEP: From {:?} to {:?} - not adjacent (dx={}, dy={})",
                     self.current_position, next_position, dx, dy
                 )
                 .into(),
@@ -365,7 +335,6 @@ impl RoverLayer {
             return false;
         }
 
-        // Update rover position
         let old_position = self.current_position;
         self.current_position = next_position;
 
@@ -393,7 +362,7 @@ impl RoverLayer {
 
         web_sys::console::log_1(
             &format!(
-                "✅ MOVED: {:?} -> {:?} | Traveled: {} | Planned: {}",
+                "MOVED: {:?} -> {:?} | Traveled: {} | Planned: {}",
                 old_position,
                 self.current_position,
                 self.traveled_path.len(),
@@ -402,7 +371,6 @@ impl RoverLayer {
             .into(),
         );
 
-        // Debug: Log next few steps if available
         if self.planned_path.len() >= 2 {
             web_sys::console::log_1(
                 &format!(
@@ -426,19 +394,19 @@ impl RoverLayer {
 
     fn set_algorithm(&mut self, algo: &str) {
         self.algorithm = algo.to_string();
-        self.planned_path.clear(); // Clear OWNED path data
+        self.planned_path.clear(); 
     }
 
     fn set_goal(&mut self, new_goal: Coord) {
         self.goal_position = new_goal;
-        self.planned_path.clear(); // Clear OWNED path data
+        self.planned_path.clear(); 
     }
 
     fn reset_to_start(&mut self, start: Coord) {
         self.start_position = start;
         self.current_position = start;
-        self.traveled_path = vec![start]; // Reset OWNED path data
-        self.planned_path.clear(); // Clear OWNED path data
+        self.traveled_path = vec![start]; 
+        self.planned_path.clear(); 
         self.is_journey_active = false;
     }
 }
@@ -458,7 +426,6 @@ impl DobLayer {
         }
     }
 
-    // ONLY PURPOSE: Check proximity and update OWNED DOB classifications
     fn check_proximity_and_convert(&mut self, rover_position: Coord) -> Vec<Coord> {
         let mut converted_coords = Vec::new();
         let mut remaining_amber = Vec::new();
@@ -469,7 +436,6 @@ impl DobLayer {
             let distance = dx.max(dy); // Chebyshev distance
 
             if distance <= 2 {
-                // Convert from amber to blue - UPDATE OWNED DATA
                 self.blue_converted_dobs.insert(dob_coord);
                 converted_coords.push(dob_coord);
                 web_sys::console::log_1(
@@ -480,16 +446,13 @@ impl DobLayer {
             }
         }
 
-        // Update OWNED amber list
         self.amber_dobs = remaining_amber;
         converted_coords
     }
 
-    // ONLY PURPOSE: Manage OWNED DOB data
     fn toggle_dob(&mut self, coord: Coord, som_layer: &SomLayer) -> bool {
-        // Check if cell is occupied by static obstacles
         if som_layer.is_cell_occupied(coord) {
-            return false; // Cannot place DOB on occupied cell
+            return false; 
         }
 
         if let Some(pos) = self.amber_dobs.iter().position(|&c| c == coord) {
@@ -504,7 +467,6 @@ impl DobLayer {
         true
     }
 
-    // Add DOB during journey
     fn add_dob(&mut self, coord: Coord, som_layer: &SomLayer) -> bool {
         if som_layer.is_cell_occupied(coord) || self.amber_dobs.contains(&coord) {
             return false;
@@ -513,7 +475,6 @@ impl DobLayer {
         true
     }
 
-    // ONLY PURPOSE: Provide OWNED DOB display data to UI Layer
     fn get_amber_dobs_for_display(&self) -> Vec<Coord> {
         self.amber_dobs.clone()
     }
@@ -528,7 +489,6 @@ impl DobLayer {
     }
 }
 
-// PROPER 4-Layer execution with CLEAR data ownership and NO conflicts
 fn execute_one_cycle(
     som_layer: &UseStateHandle<SomLayer>,
     rover_layer: &UseStateHandle<RoverLayer>,
@@ -540,38 +500,34 @@ fn execute_one_cycle(
     // Clone the actual values from UseStateHandle
     let mut current_rover: RoverLayer = (**rover_layer).clone();
 
-    // STEP 1: Check if current coordinates == goal coordinates (TRUE/FALSE)
     web_sys::console::log_1(
         &format!(
-            "🎯 STEP 1: Checking if {:?} == {:?}",
+            "STEP 1: Checking if {:?} == {:?}",
             current_rover.current_position, current_rover.goal_position
         )
         .into(),
     );
 
     if current_rover.current_position == current_rover.goal_position {
-        web_sys::console::log_1(&"🎯 STEP 1: TRUE - Goal reached! STOPPING LOOP".into());
+        web_sys::console::log_1(&"STEP 1: TRUE - Goal reached! STOPPING LOOP".into());
 
         let mut stats: JourneyStats = (**journey_stats).clone();
         stats.end_time = Some(js_sys::Date::now());
         journey_stats.set(stats);
         is_animating.set(false);
-        return; // STOP LOOP
+        return; 
     }
 
-    web_sys::console::log_1(&"🎯 STEP 1: FALSE - Continue to step 2".into());
+    web_sys::console::log_1(&"STEP 1: FALSE - Continue to step 2".into());
 
-    // STEP 2: DOB Layer checks proximity and updates OWNED data
-    web_sys::console::log_1(&"🟡 STEP 2: DOB Layer checking proximity and converting".into());
+    web_sys::console::log_1(&"STEP 2: DOB Layer checking proximity and converting".into());
 
     let mut current_dob: DobLayer = (**dob_layer).clone();
     let mut current_som: SomLayer = (**som_layer).clone();
 
-    // DOB Layer updates its OWNED data and returns newly converted coordinates
     let newly_converted_coords =
         current_dob.check_proximity_and_convert(current_rover.current_position);
 
-    // CRITICAL: If obstacles were detected, STOP movement and recompute path
     let obstacles_detected = !newly_converted_coords.is_empty();
 
     if obstacles_detected {
@@ -583,25 +539,22 @@ fn execute_one_cycle(
             .into(),
         );
 
-        // STEP 3: Send newly converted coordinates to SOM Layer
         for &coord in &newly_converted_coords {
             current_som.add_converted_dob(coord);
         }
 
-        // STEP 4: Get updated obstacle map from SOM Layer
         let obstacle_map = current_som.get_complete_obstacle_map();
         web_sys::console::log_1(
             &format!(
-                "🗺️ STEP 4: Retrieved {} total blocked coordinates from SOM",
+                "STEP 4: Retrieved {} total blocked coordinates from SOM",
                 obstacle_map.len()
             )
             .into(),
         );
 
-        // STEP 5: FORCE complete path recomputation - NO movement this cycle
         web_sys::console::log_1(
             &format!(
-                "🧠 STEP 5: FORCED PATH RECOMPUTATION from {:?} to {:?}",
+                "STEP 5: FORCED PATH RECOMPUTATION from {:?} to {:?}",
                 current_rover.current_position, current_rover.goal_position
             )
             .into(),
@@ -610,27 +563,25 @@ fn execute_one_cycle(
         let path_computed = current_rover.compute_path_from_som(obstacle_map);
 
         if !path_computed || current_rover.planned_path.len() < 2 {
-            web_sys::console::log_1(&"❌ STEP 5 FAILED: No valid path - rover trapped".into());
+            web_sys::console::log_1(&"STEP 5 FAILED: No valid path - rover trapped".into());
             trapped_alert.set(true);
             is_animating.set(false);
-            return; // STOP LOOP
+            return; 
         }
 
         web_sys::console::log_1(
             &format!(
-                "✅ STEP 5 SUCCESS: NEW path computed - {} steps, next: {:?}",
+                "STEP 5 SUCCESS: NEW path computed - {} steps, next: {:?}",
                 current_rover.planned_path.len(),
                 current_rover.planned_path.get(1).unwrap_or(&(0, 0))
             )
             .into(),
         );
 
-        // NO MOVEMENT THIS CYCLE - just update layers with new path
         dob_layer.set(current_dob);
         som_layer.set(current_som);
         rover_layer.set(current_rover.clone());
 
-        // Update stats for obstacle detection
         let mut stats: JourneyStats = (**journey_stats).clone();
         stats.obstacles_detected += newly_converted_coords.len() as u32;
         stats.reroute_count += 1;
@@ -638,7 +589,7 @@ fn execute_one_cycle(
 
         web_sys::console::log_1(
             &format!(
-                "🛑 CYCLE COMPLETE: Path recomputed for rover at {:?}, NO movement this cycle",
+                "CYCLE COMPLETE: Path recomputed for rover at {:?}, NO movement this cycle",
                 current_rover.current_position
             )
             .into(),
@@ -646,14 +597,12 @@ fn execute_one_cycle(
         return;
     }
 
-    // STEP 6: NO obstacles detected - proceed with normal movement
     web_sys::console::log_1(&"🚶 STEP 6: No obstacles detected - proceeding with movement".into());
 
-    // Validate we have a valid path for movement
     if current_rover.planned_path.len() < 2 {
         web_sys::console::log_1(
             &format!(
-                "❌ STEP 6 ABORT: Path too short for movement: {}",
+                "STEP 6 ABORT: Path too short for movement: {}",
                 current_rover.planned_path.len()
             )
             .into(),
@@ -663,7 +612,6 @@ fn execute_one_cycle(
         return;
     }
 
-    // Execute movement step
     let next_step = current_rover.planned_path[1];
     web_sys::console::log_1(&format!("🚶 STEP 6: Taking step to {:?}", next_step).into());
 
@@ -671,10 +619,10 @@ fn execute_one_cycle(
     let movement_success = current_rover.execute_movement_step();
 
     if !movement_success || current_rover.current_position == old_position {
-        web_sys::console::log_1(&"❌ STEP 6 FAILED: Movement unsuccessful".into());
+        web_sys::console::log_1(&"STEP 6 FAILED: Movement unsuccessful".into());
         trapped_alert.set(true);
         is_animating.set(false);
-        return; // STOP LOOP
+        return; 
     }
 
     web_sys::console::log_1(
@@ -686,12 +634,10 @@ fn execute_one_cycle(
         .into(),
     );
 
-    // STEP 7: Update layers with movement data
     web_sys::console::log_1(&"⏹️ STEP 7: Updating layers with movement data".into());
 
     rover_layer.set(current_rover.clone());
 
-    // STEP 8: Update stats for movement
     let mut stats: JourneyStats = (**journey_stats).clone();
     stats.nodes_visited += 1;
     stats.total_distance += 1.0;
@@ -699,7 +645,7 @@ fn execute_one_cycle(
 
     web_sys::console::log_1(
         &format!(
-            "✅ STEP 7 COMPLETE: Movement cycle complete - rover at {:?}",
+            "STEP 7 COMPLETE: Movement cycle complete - rover at {:?}",
             current_rover.current_position
         )
         .into(),
@@ -715,13 +661,11 @@ pub fn main_app() -> Html {
     let grid_width = 50usize;
     let grid_height = 30usize;
 
-    // === THE 4 LAYERS with CLEAR ownership ===
-    let som_layer = use_state(|| SomLayer::new()); // OWNS: Blocked coordinates
-    let rover_layer = use_state(|| RoverLayer::new((5, 5), (45, 25))); // OWNS: Path data
-    let dob_layer = use_state(|| DobLayer::new()); // OWNS: DOB states and display
-                                                   // UI Layer (Layer 2) OWNS: Nothing - only displays data from other layers
+    let som_layer = use_state(|| SomLayer::new()); 
+    let rover_layer = use_state(|| RoverLayer::new((5, 5), (45, 25)));
+    let dob_layer = use_state(|| DobLayer::new()); 
 
-    // UI Control State
+    
     let is_computing = use_state(|| false);
     let is_animating = use_state(|| false);
     let path_computed = use_state(|| false);
@@ -731,7 +675,7 @@ pub fn main_app() -> Html {
     let trapped_alert = use_state(|| false);
     let current_speed = use_state(|| 5u32);
 
-    let visual_start = use_state(|| (5, 5)); // Visual marker stays put
+    let visual_start = use_state(|| (5, 5)); 
 
     let journey_stats = use_state(|| JourneyStats {
         start_time: None,
@@ -743,8 +687,7 @@ pub fn main_app() -> Html {
         path_efficiency: 100.0,
     });
 
-    // === PURE SYNCHRONOUS JOURNEY EXECUTION ===
-    // When rover position changes AND animation is active, execute one cycle
+    
     {
         let som_layer = som_layer.clone();
         let rover_layer = rover_layer.clone();
@@ -766,15 +709,13 @@ pub fn main_app() -> Html {
                     return;
                 }
 
-                // CRITICAL SAFETY CHECKS to prevent infinite execution
                 let current_stats = (*journey_stats).clone();
                 if current_stats.nodes_visited > 1000 {
-                    web_sys::console::log_1(&"🛑 Safety stop - too many steps".into());
+                    web_sys::console::log_1(&"Safety stop - too many steps".into());
                     is_animating.set(false);
                     return;
                 }
 
-                // Check if rover has a valid path before proceeding
                 let current_rover_state = (*rover_layer).clone();
                 if current_rover_state.current_position == current_rover_state.goal_position {
                     web_sys::console::log_1(&"🎯 Goal reached - stopping animation".into());
@@ -782,7 +723,6 @@ pub fn main_app() -> Html {
                     return;
                 }
 
-                // Safety check: don't execute if no path and no obstacles to convert
                 if current_rover_state.planned_path.len() < 2 && *dob_count == 0 {
                     web_sys::console::log_1(
                         &"🛑 No valid path and no obstacles to process - stopping".into(),
@@ -794,7 +734,7 @@ pub fn main_app() -> Html {
 
                 web_sys::console::log_1(
                     &format!(
-                        "🔄 CYCLE TRIGGER: Rover at {:?}, speed {}, DOBs: {}, path_len: {}",
+                        "CYCLE TRIGGER: Rover at {:?}, speed {}, DOBs: {}, path_len: {}",
                         rover_position,
                         speed,
                         dob_count,
@@ -803,11 +743,10 @@ pub fn main_app() -> Html {
                     .into(),
                 );
 
-                // Immediately log current DOB state to debug
                 let debug_dob = (*dob_layer).clone();
                 web_sys::console::log_1(
                     &format!(
-                        "🟡 PRE-CYCLE DOB CHECK: {} amber DOBs: {:?}",
+                        "PRE-CYCLE DOB CHECK: {} amber DOBs: {:?}",
                         debug_dob.amber_dobs.len(),
                         debug_dob.amber_dobs
                     )
@@ -819,7 +758,6 @@ pub fn main_app() -> Html {
                 let delay_ms = 1100 - (*speed as u32 * 100);
 
                 let timeout = gloo_timers::callback::Timeout::new(delay_ms, move || {
-                    // Execute one complete synchronous cycle
                     execute_one_cycle(
                         &som_layer,
                         &rover_layer,
@@ -834,12 +772,10 @@ pub fn main_app() -> Html {
         );
     }
 
-    // Mouse interaction state
     let is_dragging = use_state(|| false);
     let drag_mode = use_state(|| false);
     let last_drag_cell = use_state(|| None::<Coord>);
 
-    // Dark mode effect
     {
         let is_dark = is_dark.clone();
         use_effect_with(*is_dark, move |is_dark| {
@@ -857,7 +793,6 @@ pub fn main_app() -> Html {
         });
     }
 
-    // === LAYER INTERACTION CALLBACKS ===
 
     let on_compute = {
         let som_layer = som_layer.clone();
@@ -866,13 +801,12 @@ pub fn main_app() -> Html {
         let path_computed = path_computed.clone();
 
         Callback::from(move |_| {
-            web_sys::console::log_1(&"🧠 COMPUTE PATH: Creating initial planned path".into());
+            web_sys::console::log_1(&"COMPUTE PATH: Creating initial planned path".into());
             is_computing.set(true);
 
             let current_som = (*som_layer).clone();
             let mut current_rover = (*rover_layer).clone();
 
-            // Clear planned path only
             current_rover.planned_path.clear();
             current_rover.planned_path.shrink_to_fit();
             web_sys::console::log_1(
@@ -883,7 +817,6 @@ pub fn main_app() -> Html {
                 .into(),
             );
 
-            // SOM Layer provides blocked coordinates to Rover Layer
             let obstacle_map = current_som.get_complete_obstacle_map();
             web_sys::console::log_1(
                 &format!(
@@ -898,14 +831,14 @@ pub fn main_app() -> Html {
             if path_found {
                 web_sys::console::log_1(
                     &format!(
-                        "✅ Path computation SUCCESS: {} planned steps | {} traveled steps",
+                        "Path computation SUCCESS: {} planned steps | {} traveled steps",
                         current_rover.planned_path.len(),
                         current_rover.traveled_path.len()
                     )
                     .into(),
                 );
             } else {
-                web_sys::console::log_1(&"❌ Path computation FAILED".into());
+                web_sys::console::log_1(&"Path computation FAILED".into());
             }
 
             rover_layer.set(current_rover);
@@ -927,15 +860,14 @@ pub fn main_app() -> Html {
             let mut current_rover = (*rover_layer).clone();
 
             if current_rover.planned_path.is_empty() {
-                web_sys::console::log_1(&"❌ Cannot start - no planned path computed".into());
+                web_sys::console::log_1(&"Cannot start - no planned path computed".into());
                 return;
             }
 
-            // CRITICAL: Ensure planned path starts from current position
             if current_rover.planned_path[0] != current_rover.current_position {
                 web_sys::console::log_1(
                     &format!(
-                        "🔧 Fixing planned path start: {:?} -> {:?}",
+                        "Fixing planned path start: {:?} -> {:?}",
                         current_rover.planned_path[0], current_rover.current_position
                     )
                     .into(),
@@ -945,7 +877,7 @@ pub fn main_app() -> Html {
 
             web_sys::console::log_1(
                 &format!(
-                    "🚀 Starting journey | Traveled: {} steps | Planned: {} steps: {:?} -> {:?}",
+                    "Starting journey | Traveled: {} steps | Planned: {} steps: {:?} -> {:?}",
                     current_rover.traveled_path.len(),
                     current_rover.planned_path.len(),
                     current_rover.planned_path.first().unwrap_or(&(0, 0)),
@@ -954,7 +886,6 @@ pub fn main_app() -> Html {
                 .into(),
             );
 
-            // Initialize journey state
             trapped_alert.set(false);
             visual_start.set(current_rover.start_position);
 
@@ -968,12 +899,10 @@ pub fn main_app() -> Html {
                 path_efficiency: 100.0,
             });
 
-            // Update rover state
             rover_layer.set(current_rover);
 
             web_sys::console::log_1(&"🚀 Journey initialized - starting movement execution".into());
 
-            // START EXECUTION by setting animation flag
             is_animating.set(true);
         })
     };
@@ -1000,7 +929,7 @@ pub fn main_app() -> Html {
             rover_layer.set(current_rover);
             path_computed.set(false);
 
-            web_sys::console::log_1(&format!("✅ Algorithm changed to: {}", alg_str).into());
+            web_sys::console::log_1(&format!("Algorithm changed to: {}", alg_str).into());
         })
     };
 
@@ -1025,7 +954,7 @@ pub fn main_app() -> Html {
         Callback::from(move |coord: Coord| {
             web_sys::console::log_1(
                 &format!(
-                    "🖱️ MOUSE DOWN at {:?} - Animation: {}",
+                    "MOUSE DOWN at {:?} - Animation: {}",
                     coord, *is_animating
                 )
                 .into(),
@@ -1035,13 +964,12 @@ pub fn main_app() -> Html {
             let current_som = (*som_layer).clone();
             let current_dob = (*dob_layer).clone();
 
-            // Don't place obstacles on key positions
             if coord == *visual_start
                 || coord == current_rover.goal_position
                 || coord == current_rover.current_position
             {
                 web_sys::console::log_1(
-                    &format!("❌ Cannot place at {:?} - protected position", coord).into(),
+                    &format!("Cannot place at {:?} - protected position", coord).into(),
                 );
                 return;
             }
@@ -1050,13 +978,12 @@ pub fn main_app() -> Html {
             last_drag_cell.set(Some(coord));
 
             if *is_animating {
-                // DURING JOURNEY: DOB Layer manages OWNED DOB data
                 web_sys::console::log_1(
-                    &format!("🟡 JOURNEY MODE: DOB operation at {:?}", coord).into(),
+                    &format!("JOURNEY MODE: DOB operation at {:?}", coord).into(),
                 );
                 web_sys::console::log_1(
                     &format!(
-                        "🟡 Current DOB state: {} amber DOBs",
+                        "Current DOB state: {} amber DOBs",
                         current_dob.amber_dobs.len()
                     )
                     .into(),
@@ -1064,11 +991,10 @@ pub fn main_app() -> Html {
 
                 let mut updated_dob = current_dob.clone();
 
-                // Check if cell is already occupied by static obstacles
                 if current_som.is_cell_occupied(coord) {
                     web_sys::console::log_1(
                         &format!(
-                            "❌ Cannot place DOB at {:?} - cell occupied by static obstacle",
+                            "Cannot place DOB at {:?} - cell occupied by static obstacle",
                             coord
                         )
                         .into(),
@@ -1076,41 +1002,38 @@ pub fn main_app() -> Html {
                     return;
                 }
 
-                // Check if DOB already exists at this location
                 let already_has_dob = updated_dob.amber_dobs.contains(&coord);
                 web_sys::console::log_1(
-                    &format!("🟡 DOB exists at {:?}: {}", coord, already_has_dob).into(),
+                    &format!("DOB exists at {:?}: {}", coord, already_has_dob).into(),
                 );
 
                 if already_has_dob {
-                    // Remove existing DOB
                     updated_dob.amber_dobs.retain(|&c| c != coord);
                     web_sys::console::log_1(
                         &format!(
-                            "🟡 REMOVED amber DOB at {:?} - total: {}",
+                            "REMOVED amber DOB at {:?} - total: {}",
                             coord,
                             updated_dob.amber_dobs.len()
                         )
                         .into(),
                     );
-                    drag_mode.set(false); // Removing mode
+                    drag_mode.set(false);
                 } else {
-                    // Add new DOB
                     updated_dob.amber_dobs.push(coord);
                     web_sys::console::log_1(
                         &format!(
-                            "🟡 ADDED amber DOB at {:?} - total: {}",
+                            "ADDED amber DOB at {:?} - total: {}",
                             coord,
                             updated_dob.amber_dobs.len()
                         )
                         .into(),
                     );
-                    drag_mode.set(true); // Adding mode
+                    drag_mode.set(true);
                 }
 
                 web_sys::console::log_1(
                     &format!(
-                        "🟡 Setting DOB layer with {} amber DOBs: {:?}",
+                        "Setting DOB layer with {} amber DOBs: {:?}",
                         updated_dob.amber_dobs.len(),
                         updated_dob.amber_dobs
                     )
@@ -1118,9 +1041,8 @@ pub fn main_app() -> Html {
                 );
                 dob_layer.set(updated_dob);
             } else {
-                // BEFORE JOURNEY: SOM Layer manages static obstacles
                 web_sys::console::log_1(
-                    &format!("🔵 SETUP MODE: Adding static obstacle at {:?}", coord).into(),
+                    &format!("SETUP MODE: Adding static obstacle at {:?}", coord).into(),
                 );
                 let mut updated_som = current_som;
                 let has_static = updated_som.original_static_obstacles.contains(&coord);
@@ -1168,10 +1090,9 @@ pub fn main_app() -> Html {
             last_drag_cell.set(Some(coord));
 
             if *is_animating {
-                // DURING JOURNEY: DOB Layer drag operations
                 web_sys::console::log_1(
                     &format!(
-                        "🟡 MOUSE DRAG: DOB operation at {:?} (mode: {})",
+                        "MOUSE DRAG: DOB operation at {:?} (mode: {})",
                         coord,
                         if *drag_mode { "ADD" } else { "REMOVE" }
                     )
@@ -1180,7 +1101,6 @@ pub fn main_app() -> Html {
 
                 let mut updated_dob = current_dob;
 
-                // Check if cell is already occupied by static obstacles
                 if current_som.is_cell_occupied(coord) {
                     return;
                 }
@@ -1188,22 +1108,20 @@ pub fn main_app() -> Html {
                 let has_amber = updated_dob.amber_dobs.contains(&coord);
 
                 if *drag_mode && !has_amber {
-                    // Adding DOBs during drag
                     updated_dob.amber_dobs.push(coord);
                     web_sys::console::log_1(
                         &format!(
-                            "🟡 Dragged amber DOB added at {:?} - total: {}",
+                            "Dragged amber DOB added at {:?} - total: {}",
                             coord,
                             updated_dob.amber_dobs.len()
                         )
                         .into(),
                     );
                 } else if !*drag_mode && has_amber {
-                    // Removing DOBs during drag
                     updated_dob.amber_dobs.retain(|&c| c != coord);
                     web_sys::console::log_1(
                         &format!(
-                            "🟡 Dragged amber DOB removed at {:?} - total: {}",
+                            "Dragged amber DOB removed at {:?} - total: {}",
                             coord,
                             updated_dob.amber_dobs.len()
                         )
@@ -1213,7 +1131,6 @@ pub fn main_app() -> Html {
 
                 dob_layer.set(updated_dob);
             } else {
-                // BEFORE JOURNEY: SOM Layer static obstacle drag operations
                 let mut updated_som = current_som;
                 let has_static = updated_som.original_static_obstacles.contains(&coord);
 
@@ -1317,7 +1234,6 @@ pub fn main_app() -> Html {
 
             let start_pos = *visual_start;
 
-            // Each layer resets its OWNED data
             let mut updated_rover = (*rover_layer).clone();
             updated_rover.reset_to_start(start_pos);
             rover_layer.set(updated_rover);
@@ -1361,7 +1277,6 @@ pub fn main_app() -> Html {
         })
     };
 
-    // === LAYER 2: UI VISUALIZATION LAYER - ONLY DISPLAYS DATA FROM OWNING LAYERS ===
     let current_som = (*som_layer).clone();
     let current_rover = (*rover_layer).clone();
     let current_dob = (*dob_layer).clone();
@@ -1371,10 +1286,10 @@ pub fn main_app() -> Html {
     let display_rover_state = crate::rover::RoverState {
         pos: current_rover.current_position,
         goal: current_rover.goal_position,
-        path: current_rover.planned_path.clone(), // FROM Rover Layer (OWNER)
-        obstacles: current_som.original_static_obstacles.clone(), // FROM SOM Layer (OWNER)
-        dynamic_obstacles: Vec::new(),            // NEVER pass amber DOBs to rover system!
-        converted_obstacles: current_dob.get_blue_dobs_for_display(), // FROM DOB Layer (OWNER) - only converted
+        path: current_rover.planned_path.clone(),
+        obstacles: current_som.original_static_obstacles.clone(), 
+        dynamic_obstacles: Vec::new(),         
+        converted_obstacles: current_dob.get_blue_dobs_for_display(),
         algorithm: current_rover.algorithm.clone(),
         speed: *current_speed,
         width: 50,
@@ -1397,7 +1312,7 @@ pub fn main_app() -> Html {
                         on_algo_change={Callback::noop()}
                         on_speed_change={on_speed_change}
                         on_toggle_panel={on_toggle_panel}
-                        current_algorithm={"D*-Lite".to_string()} // FORCED: Only show D*-Lite
+                        current_algorithm={"D*-Lite".to_string()} 
                         current_speed={*current_speed}
                         is_computing={*is_computing}
                         is_animating={*is_animating}
@@ -1410,7 +1325,7 @@ pub fn main_app() -> Html {
                             height={grid_height}
                             rover_state={display_rover_state}
                             visual_start={visual_start_pos}
-                            traveled_path={current_rover.traveled_path.clone()}  // FROM Rover Layer (OWNER)
+                            traveled_path={current_rover.traveled_path.clone()}  
                             amber_dobs={current_dob.get_amber_dobs_for_display()}
                             on_mouse_down={on_mouse_down}
                             on_mouse_move={on_mouse_move}
@@ -1453,7 +1368,7 @@ pub fn main_app() -> Html {
                                 let avg_speed = if duration > 0.0 { stats.nodes_visited as f64 / duration } else { 0.0 };
                                 html! {
                                     <div class="stats-complete">
-                                        <span class="stat-item">{ "🎉 Complete!" }</span>
+                                        <span class="stat-item">{ "~ Complete ~" }</span>
                                         <span class="stat-item">{ format!("⏱️ {:.1}s", duration) }</span>
                                         <span class="stat-item">{ format!("📏 {:.1} cells", stats.total_distance) }</span>
                                         <span class="stat-item">{ format!("🔄 {} reroutes", stats.reroute_count) }</span>
@@ -1467,7 +1382,7 @@ pub fn main_app() -> Html {
                                 let elapsed = (js_sys::Date::now() - stats.start_time.unwrap()) / 1000.0;
                                 html! {
                                     <div class="stats-traveling">
-                                        <span class="stat-item">{ "🚀 Traveling" }</span>
+                                        <span class="stat-item">{ ">> Traveling >>" }</span>
                                         <span class="stat-item">{ format!("⏱️ {:.1}s", elapsed) }</span>
                                         <span class="stat-item">{ format!("📏 {:.1} cells", stats.total_distance) }</span>
                                         <span class="stat-item">{ format!("🔄 {} reroutes", stats.reroute_count) }</span>
@@ -1481,7 +1396,7 @@ pub fn main_app() -> Html {
                                         <span class="stat-item">{ "🎯 Ready!" }</span>
                                         <span class="stat-item">{ format!("🧭 {}", current_rover.algorithm) }</span>
                                         <span class="stat-item">{ format!("🏃 Speed: {}", *current_speed) }</span>
-                                        <span class="stat-item">{ "👆 Click 'Find Path' → 'Start Journey'" }</span>
+                                        <span class="stat-item">{ "Click 'Find Path' → 'Start Journey'" }</span>
                                     </div>
                                 }
                             }
