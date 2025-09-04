@@ -39,7 +39,6 @@ pub fn controls(props: &ControlsProps) -> Html {
     let path_computed = props.path_computed;
     let is_panel_minimized = props.is_panel_minimized;
 
-    // Handler for algorithm dropdown
     let on_change_algo = Callback::from(move |e: Event| {
         let select = e
             .target()
@@ -50,7 +49,6 @@ pub fn controls(props: &ControlsProps) -> Html {
         on_algo_change.emit(alg_str);
     });
 
-    // Handler for speed slider
     let on_change_speed = Callback::from(move |e: InputEvent| {
         if let Some(target) = e.target() {
             if let Ok(input) = target.dyn_into::<HtmlInputElement>() {
@@ -61,7 +59,6 @@ pub fn controls(props: &ControlsProps) -> Html {
         }
     });
 
-    // Button states
     let find_path_text = if is_computing {
         "Computing..."
     } else {
