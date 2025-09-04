@@ -23,10 +23,10 @@ Grid Map 4-Layer Architecture
 
 | Layer                              | Purpose                           | Consumes                                                                       | Produces                                             |
 | ---------------------------------- | --------------------------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------- |
-| **1 · Dynamic Obstacle Map (DOB)** | Manages user-placed obstacles…    | • Mouse clicks (UI)<br>• Rover coordinates (L-3)<br>• Initial SOB layout (L-4) | • New SOB coords → L-4<br>• Amber/blue updates → L-2 |
-| **2 · Grid UI / Visualisation**    | Single source of truth…           | Inputs from L-1, L-3, L-4                                                      | Draw commands → browser                              |
-| **3 · Rover & Path**               | Keeps rover pose, travelled path… | • Program state<br>• Start/goal nodes + FOM (L-4)<br>• Algorithm impl          | • Pose + paths → L-2<br>• Status → backend           |
-| **4 · Fixed Obstacle Map (FOM)**   | Authoritative obstacle list…      | • Initial grid<br>• Converted DOBs (L-1)<br>• Rover requests                   | • SOB list → L-3<br>• Original SOB list → L-2, L-1   |
+| *1 · Dynamic Obstacle Map (DOB)*   | Manages user-placed obstacles…    | • Mouse clicks (UI)<br>• Rover coordinates (L-3)<br>• Initial SOB layout (L-4) | • New SOB coords → L-4• Amber/blue updates → L-2 |
+| *2 · Grid UI / Visualisation*      | Single source of truth…           | Inputs from L-1, L-3, L-4                                                      | Draw commands → browser                              |
+| *3 · Rover & Path*                 | Keeps rover pose, travelled path… | • Program state<br>• Start/goal nodes + FOM (L-4)<br>• Algorithm impl          | • Pose + paths → L-2<br>• Status → backend           |
+| *4 · Fixed Obstacle Map (FOM)*     | Authoritative obstacle list…      | • Initial grid<br>• Converted DOBs (L-1)<br>• Rover requests                   | • SOB list → L-3<br>• Original SOB list → L-2, L-1   |
 
 
 Dynamic Obstacle Block (DOB) - Represents the cells on the map placed by the user mid-journey that the rover is "unaware" of (amber color) which convert to Static Obstacle Blocks (blue color) if the Rover node comes within a 2-cell proximity on its journey. 
